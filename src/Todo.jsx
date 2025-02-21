@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 function Todo() {
-  const [lists, setLists] = useState([]); // Array containing all items
+  // Load tasks from local storage if available
+  const savedLists = JSON.parse(localStorage.getItem("tasks")) || [];
+
+  const [lists, setLists] = useState(savedLists); // Array containing all items
   const [items, setItems] = useState(""); // Current item input
 
   const handleInputChange = (e) => {
@@ -11,14 +14,24 @@ function Todo() {
   function addItem() {
     const newValue = document.getElementById("enterList").value.trim();
     if (newValue !== "") {
-      setLists([...lists, { text: newValue, isTicked: false }]); // Add as object
+      setLists((prevLists) => {
+        const updatedLists = [...prevLists, { text: newValue, isTicked: false }];
+        // Save updated tasks to local storage
+        localStorage.setItem("tasks", JSON.stringify(updatedLists));
+        return updatedLists;
+      });
       setItems("");
       document.getElementById("enterList").value = "";
     }
   }
 
   function handleDelete(index) {
-    setLists((prevList) => prevList.filter((_, i) => i !== index));
+    setLists((prevList) => {
+      const updatedLists = prevList.filter((_, i) => i !== index);
+      // Save updated tasks to local storage
+      localStorage.setItem("tasks", JSON.stringify(updatedLists));
+      return updatedLists;
+    });
   }
 
   function handleUp(index) {
@@ -26,6 +39,7 @@ function Todo() {
       const newList = [...lists];
       [newList[index], newList[index - 1]] = [newList[index - 1], newList[index]];
       setLists(newList); // Update the state with the new list
+      localStorage.setItem("tasks", JSON.stringify(newList)); // Save to local storage
     }
   }
 
@@ -34,6 +48,7 @@ function Todo() {
       const newList = [...lists];
       [newList[index], newList[index + 1]] = [newList[index + 1], newList[index]];
       setLists(newList); // Update the state with the new list
+      localStorage.setItem("tasks", JSON.stringify(newList)); // Save to local storage
     }
   }
 
@@ -49,6 +64,8 @@ function Todo() {
         i === index ? { ...item, isTicked: !item.isTicked } : item
       )
     );
+    // Save to local storage after ticking an item
+    localStorage.setItem("tasks", JSON.stringify(lists));
   };
 
   return (
